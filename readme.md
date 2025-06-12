@@ -192,7 +192,3 @@ MIT License
 
 - Ensure your API key is kept secure and **never** committed to version control.
 - For more details on the Apillon API, see the [official documentation](https://apillon.io/).
-
----
-
-**Happy
