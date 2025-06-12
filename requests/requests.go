@@ -3,7 +3,21 @@ package requests
 import (
 	"io"
 	"net/http"
+	"os"
 )
+
+var apiKey string
+
+func SetAPIKey(key string) {
+	apiKey = key
+}
+
+func getAPIKey() string {
+	if apiKey != "" {
+		return apiKey
+	}
+	return os.Getenv("APILLON_API_KEY")
+}
 
 func GetReq(path string, params map[string]string) (string, error) {
 	url := "https://api.apillon.io" + path
@@ -21,7 +35,7 @@ func GetReq(path string, params map[string]string) (string, error) {
 		return "", err
 	}
 
-	req.Header.Set("Authorization", "Basic MWY1MzM2NjAtM2I4MC00MTA4LWE2OGUtMjMzOTc2MDUxOGE3OjJ0bXgjeHFTZ25EWQ==")
+	req.Header.Set("Authorization", "Basic "+getAPIKey())
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -48,8 +62,7 @@ func PostReq(path string, body io.Reader) (string, error) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-
-	req.Header.Set("Authorization", "Basic MWY1MzM2NjAtM2I4MC00MTA4LWE2OGUtMjMzOTc2MDUxOGE3OjJ0bXgjeHFTZ25EWQ==")
+	req.Header.Set("Authorization", "Basic "+getAPIKey())
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -75,7 +88,7 @@ func DeleteReq(path string) (string, error) {
 		return "", err
 	}
 
-	req.Header.Set("Authorization", "Basic MWY1MzM2NjAtM2I4MC00MTA4LWE2OGUtMjMzOTc2MDUxOGE3OjJ0bXgjeHFTZ25EWQ==")
+	req.Header.Set("Authorization", "Basic "+getAPIKey())
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

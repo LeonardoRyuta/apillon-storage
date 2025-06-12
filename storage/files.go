@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/HealthTrust/MVP-TEE-Backend/apillon/requests"
+	"github.com/LeonardoRyuta/apillon-storage/requests"
 )
 
 func GetBucketContent(bucketUuid string) (string, error) {

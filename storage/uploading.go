@@ -1,3 +1,5 @@
+// Package storage provides functions to handle file uploads to Apillon storage buckets.
+// It manages the upload session lifecycle, including starting uploads, uploading files via signed URLs, and ending sessions.
 package storage
 
 import (
@@ -9,9 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/HealthTrust/MVP-TEE-Backend/apillon/requests"
+	"github.com/LeonardoRyuta/apillon-storage/requests"
 )
 
+// StartUploadFilesToBucket initiates an upload session for a set of files in a given bucket.
+// It sends file metadata to the Apillon API and returns the raw API response or an error.
 func StartUploadFilesToBucket(bucketUuid string, files []FileMetadata) (string, error) {
 	var filesJsonArrayElements []string
 	for _, file := range files {
@@ -19,7 +23,8 @@ func StartUploadFilesToBucket(bucketUuid string, files []FileMetadata) (string, 
 		if contentType == "" {
 			contentType = "text/plain"
 		}
-		element := `{"fileName":"` + file.FileName + `", "contentType":"` + file.ContentType + `"}`
+		// Prepare JSON element for each file's metadata
+		element := `{"fileName":"` + file.FileName + `", "contentType":"` + file.ContentType + `"}` // Note: contentType variable is not used here
 		filesJsonArrayElements = append(filesJsonArrayElements, element)
 	}
 
@@ -38,6 +43,8 @@ func StartUploadFilesToBucket(bucketUuid string, files []FileMetadata) (string, 
 	return res, nil
 }
 
+// UploadFiles uploads a file's raw content to a signed URL using HTTP PUT.
+// Returns a success message or an error if the upload fails.
 func UploadFiles(signedURL string, rawFile string) (string, error) {
 	client := &http.Client{}
 
@@ -61,11 +68,12 @@ func UploadFiles(signedURL string, rawFile string) (string, error) {
 	}
 
 	log.Printf("Successfully uploaded file %d to signed URL: %s", len(rawFile), signedURL)
-
 	log.Printf("%d files uploaded successfully to bucket via signed URL: %s", len(rawFile), signedURL)
 	return "upload-success", nil
 }
 
+// EndSession finalizes an upload session for a given bucket and session ID.
+// Returns the API response or an error.
 func EndSession(bucketUuid string, sessionId string) (string, error) {
 	path := "/storage/buckets/" + bucketUuid + "/upload/" + sessionId + "/end"
 
@@ -79,8 +87,13 @@ func EndSession(bucketUuid string, sessionId string) (string, error) {
 	return res, nil
 }
 
+// UploadFileProcess orchestrates the full upload process for multiple files:
+// 1. Starts an upload session and retrieves signed URLs.
+// 2. Uploads each file to its corresponding signed URL.
+// 3. Ends the upload session.
+// Returns the final API response or an error.
 func UploadFileProcess(bucketUuid string, files []WholeFile) (string, error) {
-	// StartUploadFilesToBucket(bucketUuid, files[0].Metadata)
+	// Extract only the metadata for the upload session initiation
 	onlyMetadata := make([]FileMetadata, len(files))
 	for i, file := range files {
 		if file.Content == "" || file.Metadata.FileName == "" {
@@ -90,6 +103,7 @@ func UploadFileProcess(bucketUuid string, files []WholeFile) (string, error) {
 		onlyMetadata[i] = file.Metadata
 	}
 
+	// Step 1: Start upload session and get signed URLs
 	res, err := StartUploadFilesToBucket(bucketUuid, onlyMetadata)
 	if err != nil {
 		log.Printf("Failed to start upload files for bucket %s: %v", bucketUuid, err)
@@ -102,6 +116,7 @@ func UploadFileProcess(bucketUuid string, files []WholeFile) (string, error) {
 		return "", fmt.Errorf("failed to unmarshal process upload response: %w. Raw response: %s", errUnmarshal, res)
 	}
 
+	// Extract signed URLs from API response
 	var urls []string
 	if apiResp.Data.Files != nil {
 		for _, fileItem := range apiResp.Data.Files {
@@ -119,7 +134,7 @@ func UploadFileProcess(bucketUuid string, files []WholeFile) (string, error) {
 
 	time.Sleep(2 * time.Second) // Wait for the URLs to be ready
 
-	// Upload each file to the signed URL
+	// Step 2: Upload each file to its signed URL
 	for i, file := range files {
 		if i >= len(urls) {
 			log.Printf("Not enough URLs provided for the number of files. Expected %d URLs, got %d", len(files), len(urls))
@@ -136,12 +151,11 @@ func UploadFileProcess(bucketUuid string, files []WholeFile) (string, error) {
 		if err != nil {
 			log.Printf("Failed to upload file %s to signed URL %s for bucket %s: %v", file.Metadata.FileName, signedURL, bucketUuid, err)
 			return "", fmt.Errorf("failed to upload file %s to signed URL %s for bucket %s: %w", file.Metadata.FileName, signedURL, bucketUuid, err)
-
 		}
 		log.Printf("File %s uploaded successfully to signed URL %s for bucket %s: %s", file.Metadata.FileName, signedURL, bucketUuid, uploadRes)
 	}
 
-	// End the session after all files are uploaded
+	// Step 3: End the upload session
 	res, err = EndSession(bucketUuid, apiResp.Data.SessionUUID)
 	if err != nil {
 		log.Printf("Failed to end session for bucket %s: %v", bucketUuid, err)

@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/HealthTrust/MVP-TEE-Backend/apillon/requests"
+	"github.com/LeonardoRyuta/apillon-storage/requests"
 )
 
 func CreateBucket(name string, description string) error {
