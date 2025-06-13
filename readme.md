@@ -2,6 +2,8 @@
 
 A Go SDK for interacting with the [Apillon Storage API](https://apillon.io/). This SDK allows you to manage storage buckets, upload and manage files, and retrieve IPFS links programmatically. This is a very underdeveloped version so feel free to contribute!
 
+**Originally developed by Leonardo Iara.**
+
 ---
 
 ## Features
@@ -9,7 +11,9 @@ A Go SDK for interacting with the [Apillon Storage API](https://apillon.io/). Th
 - **Bucket Management:** Create, list, and retrieve storage buckets.
 - **File Upload:** Upload single or multiple files to a bucket.
 - **File Management:** List, retrieve details, and delete files.
+- **Directory Management:** Delete directories from a bucket.
 - **IPFS Integration:** Retrieve or generate IPFS links for files.
+- **IPFS Cluster Info:** Retrieve IPFS cluster information.
 - **Session Management:** Manage upload sessions for batch file uploads.
 
 ---
@@ -153,6 +157,18 @@ if err != nil {
 
 ---
 
+### Delete a Directory
+
+```go
+resp, err := storage.DeleteDirectory(bucketUUID, directoryUUID)
+if err != nil {
+    // handle error
+}
+fmt.Printf("Delete directory response: %+v\n", resp)
+```
+
+---
+
 ### Get or Generate IPFS Link
 
 ```go
@@ -161,6 +177,68 @@ if err != nil {
     // handle error
 }
 fmt.Println("IPFS Link:", ipfsLink)
+```
+
+---
+
+### Get IPFS Cluster Info
+
+```go
+info, err := storage.GetIPFSClusterInfo()
+if err != nil {
+    // handle error
+}
+fmt.Printf("IPFS Cluster Info: %+v\n", info.Data)
+```
+
+---
+
+### Get Bucket Content
+
+```go
+content, err := storage.GetBucketContent(bucketUUID)
+if err != nil {
+    // handle error
+}
+fmt.Println("Bucket Content:", content)
+```
+
+---
+
+### Advanced: Manual Upload Session Control
+
+#### Start an Upload Session
+
+```go
+files := []storage.FileMetadata{
+    {FileName: "file1.txt", ContentType: "text/plain"},
+    {FileName: "file2.json", ContentType: "application/json"},
+}
+resp, err := storage.StartUploadFilesToBucket(bucketUUID, files)
+if err != nil {
+    // handle error
+}
+fmt.Println("Start upload session response:", resp)
+```
+
+#### Upload File Content to Signed URL
+
+```go
+result, err := storage.UploadFiles(signedURL, fileContent)
+if err != nil {
+    // handle error
+}
+fmt.Println("Upload result:", result)
+```
+
+#### End an Upload Session
+
+```go
+resp, err := storage.EndSession(bucketUUID, sessionID)
+if err != nil {
+    // handle error
+}
+fmt.Println("End session response:", resp)
 ```
 
 ---

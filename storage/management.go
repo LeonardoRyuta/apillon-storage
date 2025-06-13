@@ -9,6 +9,9 @@ import (
 	"github.com/LeonardoRyuta/apillon-storage/requests"
 )
 
+// CreateBucket creates a new storage bucket with the specified name and optional description.
+// Sends a POST request to the storage API to create the bucket.
+// Returns an error if the request fails or the API returns an error.
 func CreateBucket(name string, description string) error {
 	body := `{"name":"` + name + `"`
 	if description != "" {
@@ -26,6 +29,9 @@ func CreateBucket(name string, description string) error {
 	return nil
 }
 
+// GetBucket retrieves information about storage buckets, optionally filtered by name.
+// Sends a GET request to the storage API with the provided name as a query parameter.
+// Returns a ListBucketsResponse containing the bucket(s) information, or an error if the request or unmarshalling fails.
 func GetBucket(name string) (ListBucketsResponse, error) {
 
 	params := map[string]string{}

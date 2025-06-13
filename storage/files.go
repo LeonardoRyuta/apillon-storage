@@ -8,6 +8,8 @@ import (
 	"github.com/LeonardoRyuta/apillon-storage/requests"
 )
 
+// GetBucketContent retrieves the raw content of a storage bucket by its UUID.
+// Returns the raw response as a string, or an error if the request fails.
 func GetBucketContent(bucketUuid string) (string, error) {
 	path := "/storage/buckets/" + bucketUuid + "/content"
 
@@ -21,6 +23,8 @@ func GetBucketContent(bucketUuid string) (string, error) {
 	return res, nil
 }
 
+// ListFilesInBucket lists all files in a given bucket by its UUID.
+// Returns a ListFilesResponse struct or an error if the request or unmarshalling fails.
 func ListFilesInBucket(bucketUuid string) (ListFilesResponse, error) {
 	path := "/storage/buckets/" + bucketUuid + "/files"
 	res, err := requests.GetReq(path, nil)
@@ -39,6 +43,8 @@ func ListFilesInBucket(bucketUuid string) (ListFilesResponse, error) {
 	return fileList, nil
 }
 
+// GetFileDetails retrieves details for a specific file in a bucket using their UUIDs.
+// Returns a FileDetails struct or an error if the request or unmarshalling fails.
 func GetFileDetails(bucketUuid string, fileUuid string) (FileDetails, error) {
 	path := "/storage/buckets/" + bucketUuid + "/files/" + fileUuid
 	res, err := requests.GetReq(path, nil)
@@ -57,6 +63,8 @@ func GetFileDetails(bucketUuid string, fileUuid string) (FileDetails, error) {
 	return fileDetails, nil
 }
 
+// DeleteFile deletes a specific file from a bucket using their UUIDs.
+// Returns the raw response as a string, or an error if the request fails.
 func DeleteFile(bucketUuid string, fileUuid string) (string, error) {
 	path := "/storage/buckets/" + bucketUuid + "/files/" + fileUuid
 
@@ -70,6 +78,38 @@ func DeleteFile(bucketUuid string, fileUuid string) (string, error) {
 	return res, nil
 }
 
+// DeleteDirectory deletes a directory from a bucket using their UUIDs.
+// Returns a DeleteDirectoryResponse struct or an error if the request or unmarshalling fails.
+// Handles known error codes for non-existent or already deleted directories.
+func DeleteDirectory(bucketUuid string, directoryUuid string) (DeleteDirectoryResponse, error) {
+	path := "/storage/buckets/" + bucketUuid + "/directories/" + directoryUuid
+
+	res, err := requests.DeleteReq(path)
+	if err != nil {
+		log.Printf("Failed to delete directory %s in bucket %s: %v", directoryUuid, bucketUuid, err)
+		return DeleteDirectoryResponse{}, err
+	}
+
+	var resp DeleteDirectoryResponse
+	if errUnmarshal := json.Unmarshal([]byte(res), &resp); errUnmarshal != nil {
+		log.Printf("Failed to unmarshal JSON response from delete directory %s in bucket %s: %v. Raw response: %s", directoryUuid, bucketUuid, errUnmarshal, res)
+		return DeleteDirectoryResponse{}, fmt.Errorf("failed to unmarshal delete directory response: %w. Raw response: %s", errUnmarshal, res)
+	}
+
+	// Handle known error codes in the response if needed
+	if resp.Status == 40406003 {
+		return resp, fmt.Errorf("directory does not exist (error 40406003)")
+	}
+	if resp.Status == 40006007 {
+		return resp, fmt.Errorf("directory is already marked for deletion (error 40006007)")
+	}
+
+	log.Printf("Directory %s deleted successfully from bucket %s: %+v", directoryUuid, bucketUuid, resp)
+	return resp, nil
+}
+
+// GetOrGenerateIPFSLink retrieves or generates an IPFS link for a given CID.
+// Returns the IPFS link as a string, or an error if the request or unmarshalling fails.
 func GetOrGenerateIPFSLink(cid string) (string, error) {
 	if cid == "" {
 		log.Printf("CID is empty, cannot generate IPFS link")
@@ -96,4 +136,25 @@ func GetOrGenerateIPFSLink(cid string) (string, error) {
 
 	log.Printf("IPFS link for CID %s: %s", cid, ipfsLinkResponse.Data.Link)
 	return ipfsLinkResponse.Data.Link, nil
+}
+
+// GetIPFSClusterInfo retrieves information about the IPFS cluster.
+// Returns an IPFSClusterInfoResponse struct or an error if the request or unmarshalling fails.
+func GetIPFSClusterInfo() (IPFSClusterInfoResponse, error) {
+	path := "/storage/ipfs-cluster-info"
+
+	res, err := requests.GetReq(path, nil)
+	if err != nil {
+		log.Printf("Failed to get IPFS cluster info: %v", err)
+		return IPFSClusterInfoResponse{}, err
+	}
+
+	var infoResp IPFSClusterInfoResponse
+	if errUnmarshal := json.Unmarshal([]byte(res), &infoResp); errUnmarshal != nil {
+		log.Printf("Failed to unmarshal JSON response from get IPFS cluster info: %v. Raw response: %s", errUnmarshal, res)
+		return IPFSClusterInfoResponse{}, fmt.Errorf("failed to unmarshal IPFS cluster info response: %w. Raw response: %s", errUnmarshal, res)
+	}
+
+	log.Printf("IPFS cluster info retrieved: %+v", infoResp)
+	return infoResp, nil
 }

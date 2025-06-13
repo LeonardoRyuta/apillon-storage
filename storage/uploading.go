@@ -17,23 +17,23 @@ import (
 // StartUploadFilesToBucket initiates an upload session for a set of files in a given bucket.
 // It sends file metadata to the Apillon API and returns the raw API response or an error.
 func StartUploadFilesToBucket(bucketUuid string, files []FileMetadata) (string, error) {
-	var filesJsonArrayElements []string
-	for _, file := range files {
-		contentType := file.ContentType
-		if contentType == "" {
-			contentType = "text/plain"
+	// Ensure each file has a content type
+	for i := range files {
+		if files[i].ContentType == "" {
+			files[i].ContentType = "text/plain"
 		}
-		// Prepare JSON element for each file's metadata
-		element := `{"fileName":"` + file.FileName + `", "contentType":"` + file.ContentType + `"}` // Note: contentType variable is not used here
-		filesJsonArrayElements = append(filesJsonArrayElements, element)
 	}
 
-	filesJsonArray := strings.Join(filesJsonArrayElements, ",")
-	bodyString := `{"files":[` + filesJsonArray + `]}`
+	reqBody := startUploadRequest{Files: files}
+	bodyBytes, err := json.Marshal(reqBody)
+	if err != nil {
+		log.Printf("Failed to marshal upload files request for bucket %s: %v", bucketUuid, err)
+		return "", err
+	}
 
 	path := "/storage/buckets/" + bucketUuid + "/upload"
 
-	res, err := requests.PostReq(path, strings.NewReader(bodyString))
+	res, err := requests.PostReq(path, strings.NewReader(string(bodyBytes)))
 	if err != nil {
 		log.Printf("Failed to upload files to bucket %s via /upload endpoint: %v", bucketUuid, err)
 		return "", err
