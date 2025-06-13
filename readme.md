@@ -18,6 +18,19 @@ A Go SDK for interacting with the [Apillon Storage API](https://apillon.io/). Th
 
 ---
 
+## Requirements
+
+- Go 1.20 or higher
+- Apillon API key
+
+---
+
+## Getting Started
+
+To use the Apillon Storage Go SDK, you must register an account at [Apillon.io](https://apillon.io/), create a project, and generate an API key.
+
+---
+
 ## Installation
 
 ```sh
@@ -26,14 +39,22 @@ go get github.com/LeonardoRyuta/apillon-storage
 
 ---
 
-## Authentication
+## Initialization
 
-The SDK requires an Apillon API key for authentication.  
-You can provide the API key in two ways:
+Import the SDK in your Go code:
 
-### 1. Environment Variable (Recommended)
+```go
+import (
+    "github.com/LeonardoRyuta/apillon-storage/storage"
+    "github.com/LeonardoRyuta/apillon-storage/requests"
+)
+```
 
-Set the environment variable `APILLON_API_KEY` before running your application:
+All modules require the API key for authentication. You can provide it in two ways:
+
+### 1. Environment Variables (Recommended)
+
+Set the environment variable `APILLON_API_KEY` before running your application.
 
 **Windows (Command Prompt):**
 ```sh
@@ -50,12 +71,7 @@ export APILLON_API_KEY=your_api_key_here
 You can set the API key at runtime in your Go code:
 
 ```go
-import "github.com/LeonardoRyuta/apillon-storage/requests"
-
-func main() {
-    requests.SetAPIKey("your_api_key_here")
-    // ... your code ...
-}
+requests.SetAPIKey("your_api_key_here")
 ```
 
 ---
