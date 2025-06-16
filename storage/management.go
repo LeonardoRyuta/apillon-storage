@@ -13,6 +13,10 @@ import (
 // Sends a POST request to the storage API to create the bucket.
 // Returns an error if the request fails or the API returns an error.
 func CreateBucket(name string, description string) error {
+	if name == "" {
+		return fmt.Errorf("bucket name is required")
+	}
+
 	body := `{"name":"` + name + `"`
 	if description != "" {
 		body += `, "description":"` + description + `"`

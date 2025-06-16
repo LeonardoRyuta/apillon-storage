@@ -17,6 +17,12 @@ import (
 // StartUploadFilesToBucket initiates an upload session for a set of files in a given bucket.
 // It sends file metadata to the Apillon API and returns the raw API response or an error.
 func StartUploadFilesToBucket(bucketUuid string, files []FileMetadata) (string, error) {
+	if bucketUuid == "" {
+		return "", fmt.Errorf("bucket uuid is required")
+	}
+	if len(files) == 0 {
+		return "", fmt.Errorf("at least one file must be provided")
+	}
 	// Ensure each file has a content type
 	for i := range files {
 		if files[i].ContentType == "" {
@@ -46,6 +52,12 @@ func StartUploadFilesToBucket(bucketUuid string, files []FileMetadata) (string, 
 // UploadFiles uploads a file's raw content to a signed URL using HTTP PUT.
 // Returns a success message or an error if the upload fails.
 func UploadFiles(signedURL string, rawFile string) (string, error) {
+	if signedURL == "" {
+		return "", fmt.Errorf("signed URL is required")
+	}
+	if rawFile == "" {
+		return "", fmt.Errorf("raw file content is empty")
+	}
 	client := &http.Client{}
 
 	req, err := http.NewRequest(http.MethodPut, signedURL, strings.NewReader(rawFile))
@@ -75,6 +87,10 @@ func UploadFiles(signedURL string, rawFile string) (string, error) {
 // EndSession finalizes an upload session for a given bucket and session ID.
 // Returns the API response or an error.
 func EndSession(bucketUuid string, sessionId string) (string, error) {
+	if bucketUuid == "" || sessionId == "" {
+		return "", fmt.Errorf("bucket uuid and session id are required")
+	}
+
 	path := "/storage/buckets/" + bucketUuid + "/upload/" + sessionId + "/end"
 
 	res, err := requests.PostReq(path, nil)
@@ -93,6 +109,13 @@ func EndSession(bucketUuid string, sessionId string) (string, error) {
 // 3. Ends the upload session.
 // Returns the final API response or an error.
 func UploadFileProcess(bucketUuid string, files []WholeFile) (string, error) {
+	if bucketUuid == "" {
+		return "", fmt.Errorf("bucket uuid is required")
+	}
+	if len(files) == 0 {
+		return "", fmt.Errorf("no files provided for upload")
+	}
+
 	// Extract only the metadata for the upload session initiation
 	onlyMetadata := make([]FileMetadata, len(files))
 	for i, file := range files {
