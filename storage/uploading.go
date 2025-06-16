@@ -27,7 +27,7 @@ func StartUploadFilesToBucket(bucketUuid string, files []FileMetadata) (string, 
 	reqBody := startUploadRequest{Files: files}
 	bodyBytes, err := json.Marshal(reqBody)
 	if err != nil {
-		log.Printf("Failed to marshal upload files request for bucket %s: %v", bucketUuid, err)
+		log.Printf("Failed to marshal start upload session request for bucket %s: %v", bucketUuid, err)
 		return "", err
 	}
 
@@ -35,11 +35,11 @@ func StartUploadFilesToBucket(bucketUuid string, files []FileMetadata) (string, 
 
 	res, err := requests.PostReq(path, strings.NewReader(string(bodyBytes)))
 	if err != nil {
-		log.Printf("Failed to upload files to bucket %s via /upload endpoint: %v", bucketUuid, err)
+		log.Printf("Failed to start upload session for bucket %s via /upload endpoint: %v", bucketUuid, err)
 		return "", err
 	}
 
-	log.Printf("Files uploaded successfully to bucket %s via /upload endpoint: %s", bucketUuid, res)
+	log.Printf("Upload session started successfully for bucket %s: %s", bucketUuid, res)
 	return res, nil
 }
 
@@ -106,8 +106,8 @@ func UploadFileProcess(bucketUuid string, files []WholeFile) (string, error) {
 	// Step 1: Start upload session and get signed URLs
 	res, err := StartUploadFilesToBucket(bucketUuid, onlyMetadata)
 	if err != nil {
-		log.Printf("Failed to start upload files for bucket %s: %v", bucketUuid, err)
-		return "", fmt.Errorf("failed to start upload files for bucket %s: %w", bucketUuid, err)
+		log.Printf("Failed to start upload session for bucket %s: %v", bucketUuid, err)
+		return "", fmt.Errorf("failed to start upload session for bucket %s: %w", bucketUuid, err)
 	}
 
 	var apiResp ProcessAPIResponse
