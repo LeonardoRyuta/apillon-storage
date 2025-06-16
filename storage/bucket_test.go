@@ -42,7 +42,7 @@ func TestGetBucketWithEmptyName(t *testing.T) {
 	}
 	if result.Data.Total != 0 {
 		// If the API returns buckets even with an empty name, this is unexpected
-		t.Error("GetBucket with empty name returned empty result")
+		t.Error("GetBucket with empty name returned non-empty result")
 	}
 	t.Logf("All buckets: %+v", result)
 }
