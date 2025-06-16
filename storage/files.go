@@ -11,6 +11,10 @@ import (
 // GetBucketContent retrieves the raw content of a storage bucket by its UUID.
 // Returns the raw response as a string, or an error if the request fails.
 func GetBucketContent(bucketUuid string) (string, error) {
+	if bucketUuid == "" {
+		return "", fmt.Errorf("bucket uuid is required")
+	}
+
 	path := "/storage/buckets/" + bucketUuid + "/content"
 
 	res, err := requests.GetReq(path, nil)
@@ -26,6 +30,10 @@ func GetBucketContent(bucketUuid string) (string, error) {
 // ListFilesInBucket lists all files in a given bucket by its UUID.
 // Returns a ListFilesResponse struct or an error if the request or unmarshalling fails.
 func ListFilesInBucket(bucketUuid string) (ListFilesResponse, error) {
+	if bucketUuid == "" {
+		return ListFilesResponse{}, fmt.Errorf("bucket uuid is required")
+	}
+
 	path := "/storage/buckets/" + bucketUuid + "/files"
 	res, err := requests.GetReq(path, nil)
 	if err != nil {
@@ -46,6 +54,10 @@ func ListFilesInBucket(bucketUuid string) (ListFilesResponse, error) {
 // GetFileDetails retrieves details for a specific file in a bucket using their UUIDs.
 // Returns a FileDetails struct or an error if the request or unmarshalling fails.
 func GetFileDetails(bucketUuid string, fileUuid string) (FileDetails, error) {
+	if bucketUuid == "" || fileUuid == "" {
+		return FileDetails{}, fmt.Errorf("bucket uuid and file uuid are required")
+	}
+
 	path := "/storage/buckets/" + bucketUuid + "/files/" + fileUuid
 	res, err := requests.GetReq(path, nil)
 	if err != nil {
@@ -66,6 +78,10 @@ func GetFileDetails(bucketUuid string, fileUuid string) (FileDetails, error) {
 // DeleteFile deletes a specific file from a bucket using their UUIDs.
 // Returns the raw response as a string, or an error if the request fails.
 func DeleteFile(bucketUuid string, fileUuid string) (string, error) {
+	if bucketUuid == "" || fileUuid == "" {
+		return "", fmt.Errorf("bucket uuid and file uuid are required")
+	}
+
 	path := "/storage/buckets/" + bucketUuid + "/files/" + fileUuid
 
 	res, err := requests.DeleteReq(path)
@@ -82,6 +98,10 @@ func DeleteFile(bucketUuid string, fileUuid string) (string, error) {
 // Returns a DeleteDirectoryResponse struct or an error if the request or unmarshalling fails.
 // Handles known error codes for non-existent or already deleted directories.
 func DeleteDirectory(bucketUuid string, directoryUuid string) (DeleteDirectoryResponse, error) {
+	if bucketUuid == "" || directoryUuid == "" {
+		return DeleteDirectoryResponse{}, fmt.Errorf("bucket uuid and directory uuid are required")
+	}
+
 	path := "/storage/buckets/" + bucketUuid + "/directories/" + directoryUuid
 
 	res, err := requests.DeleteReq(path)
