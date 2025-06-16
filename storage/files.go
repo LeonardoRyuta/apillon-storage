@@ -116,7 +116,11 @@ func GetOrGenerateIPFSLink(cid string) (string, error) {
 		return "", fmt.Errorf("CID is empty, cannot generate IPFS link")
 	}
 
-	ipfsLink := "/storage/link-on-ipfs/:cid" + cid
+	// Construct the correct API path. The previous implementation
+	// mistakenly kept the ":cid" placeholder in the final URL which
+	// resulted in requests like "/storage/link-on-ipfs/:cidQm...".
+	// The API expects the CID directly appended without the colon.
+	ipfsLink := "/storage/link-on-ipfs/" + cid
 	res, err := requests.GetReq(ipfsLink, nil)
 	if err != nil {
 		log.Printf("Failed to get IPFS link for CID %s: %v", cid, err)
